@@ -169,6 +169,31 @@ body {
   padding-right: 0;
 }
 
+/* Give listing details more room on tablets and compact laptop screens. */
+@media (max-width: 999.98px) {
+  .show-page > .show-title,
+  .show-page > .show-content,
+  .show-page > .row > .show-review,
+  .show-page > .show-map {
+    width: 92% !important;
+    margin-left: 4% !important;
+    margin-right: 4% !important;
+  }
+
+  .show-page > .show-title,
+  .show-page > .show-map {
+    flex: 0 0 92%;
+  }
+
+  .show-page > .show-content {
+    flex: 0 0 92%;
+  }
+
+  .show-page > .row > .show-review {
+    flex: 0 0 92%;
+  }
+}
+
 /* review form */
 .reviewBtn {
   background-color: #fff;
