@@ -202,6 +202,12 @@ body {
   width: 50% !important;
 }
 
+@media (max-width: 500px) {
+  .review-width {
+    width: stretch;
+  }
+}
+
 .reviewBtn .form-control {
   border-radius: 8px;
   padding: 12px;
@@ -218,6 +224,32 @@ body {
 
 .reviewBtn hr {
   opacity: 0.2;
+}
+
+@media (max-width: 767.98px) {
+  .show-review .starability-slot {
+    transform: scale(0.8);
+    transform-origin: left top;
+    margin-bottom: -12px;
+  }
+
+  .show-review .starability-result {
+    transform: scale(0.8);
+    transform-origin: left center;
+    margin-bottom: -6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .show-review .starability-slot {
+    transform: scale(0.65);
+    margin-bottom: -21px;
+  }
+
+  .show-review .starability-result {
+    transform: scale(0.65);
+    margin-bottom: -10px;
+  }
 }
 
 /* map */
