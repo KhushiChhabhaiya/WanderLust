@@ -88,6 +88,7 @@ app.use((req, res, next) => {
 
 // Redirect root URL to listings
 app.get("/", (req, res) => {
+  console.log("Root redirect triggered");
   res.redirect("/listings");
 });
 
