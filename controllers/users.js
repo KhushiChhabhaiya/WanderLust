@@ -6,6 +6,29 @@ const renderSignup = (req, res) => {
   res.render("users/signup.ejs");
 };
 
+const sendVerificationEmail = async (user) => {
+  const appUrl = process.env.APP_URL?.replace(/\/$/, "");
+  if (!appUrl) {
+    throw new Error("APP_URL is not configured.");
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  user.emailVerified = false;
+  user.emailVerificationToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+  user.emailVerificationExpires = Date.now() + 15 * 60 * 1000;
+  await user.save();
+
+  await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: user.email,
+    subject: "Verify your WanderLust email",
+    text: `Hello ${user.username}, please verify your email by clicking this link: ${appUrl}/verify-email/${token}`,
+  });
+};
+
 // const signup = async (req, res, next) => {
 //   try {
 //     let { username, email, password } = req.body;
@@ -30,51 +53,89 @@ const renderSignup = (req, res) => {
 
 const signup = async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
-
-    // Create a verification token
-    const token = crypto.randomBytes(32).toString("hex");
-
-    const newUser = new User({
-      username,
-      email,
-      emailVerified: false,
-      emailVerificationToken: crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex"),
-      emailVerificationExpires: Date.now() + 15 * 60 * 1000,
-    });
-
-    // Register the user
-    await User.register(newUser, password);
-
-    // Create the verification link
-    const verifyURL = `${process.env.APP_URL}/verify-email/${token}`;
-    // const verifyURL = `http://localhost:8080/verify-email/${token}`; // for locally before deploying
-
-    // Send the verification email
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: email,
-      subject: "Verify your WanderLust email",
-      text: `Hello ${username}, please verify your email by clicking this link: ${verifyURL}`,
-    });
-
-    req.flash(
-      "success",
-      "Account created! Please check your email to verify your account.",
-    );
-
-    res.redirect("/login");
-  } catch (e) {
-    if (e.name === "UserExistsError") {
-      req.flash("error", "Username already registered.");
+    const { username, password } = req.body;
+    const email = req.body.email?.trim();
+    if (!email) {
+      req.flash("error", "Please enter a valid email address.");
       return res.redirect("/signup");
     }
 
+    let user;
+    try {
+      user = await User.register(
+        new User({ username, email, emailVerified: false }),
+        password,
+      );
+    } catch (e) {
+      if (e.name !== "UserExistsError") throw e;
+
+      user = await User.findOne({ username });
+      if (
+        !user ||
+        user.email.toLowerCase() !== email.toLowerCase() ||
+        user.emailVerified
+      ) {
+        req.flash("error", "Username already registered.");
+        return res.redirect("/signup");
+      }
+    }
+
+    try {
+      await sendVerificationEmail(user);
+      req.flash(
+        "success",
+        "Check your email for a verification link. It expires in 15 minutes.",
+      );
+    } catch (mailError) {
+      console.error("Verification email could not be sent:", mailError.message);
+      req.flash(
+        "error",
+        "Your account is saved, but the verification email could not be sent. Check the mail settings and request another link below.",
+      );
+    }
+
+    return res.redirect("/login");
+  } catch (e) {
     next(e);
   }
+};
+
+const resendVerification = async (req, res) => {
+  const email = req.body.email?.trim();
+  if (!email) {
+    req.flash("error", "Enter the email address you used to sign up.");
+    return res.redirect("/login");
+  }
+
+  const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const user = await User.findOne({
+    email: new RegExp(`^${escapedEmail}$`, "i"),
+    emailVerified: false,
+  });
+
+  if (!user) {
+    req.flash(
+      "success",
+      "If that address has an unverified account, a verification email will be sent.",
+    );
+    return res.redirect("/login");
+  }
+
+  try {
+    await sendVerificationEmail(user);
+    req.flash(
+      "success",
+      "A new verification link was sent if the email address belongs to this account. It expires in 15 minutes.",
+    );
+  } catch (mailError) {
+    console.error("Verification email could not be resent:", mailError.message);
+    req.flash(
+      "error",
+      "The verification email could not be sent. Please check the mail settings and try again.",
+    );
+  }
+
+  return res.redirect("/login");
 };
 
 const verifyEmail = async (req, res) => {
@@ -129,6 +190,7 @@ const logout = (req, res, next) => {
 
 const userController = {
   signup,
+  resendVerification,
   renderLogin,
   renderSignup,
   login,

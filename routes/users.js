@@ -10,6 +10,11 @@ router
   .get(userController.renderSignup)
   .post(wrapAsync(userController.signup));
 
+router.post(
+  "/resend-verification",
+  wrapAsync(userController.resendVerification),
+);
+
 // Google signup and login
 router.get(
   "/auth/google",

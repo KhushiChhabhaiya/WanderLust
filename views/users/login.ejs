@@ -34,3 +34,24 @@
     </form>
   </div>
 </div>
+
+<div class="row mb-4">
+  <div class="col-8 offset-2">
+    <hr />
+    <h5>Need a verification email?</h5>
+    <p>Enter the email address you used to sign up and we will send a fresh link.</p>
+    <form action="/resend-verification" method="post">
+      <div class="input-group">
+        <input
+          type="email"
+          name="email"
+          class="form-control"
+          placeholder="Email address"
+          autocomplete="email"
+          required
+        />
+        <button type="submit" class="btn btn-outline-success">Resend link</button>
+      </div>
+    </form>
+  </div>
+</div>
