@@ -1,23 +1,3 @@
-// import mongoose from "mongoose";
-// import passportLocalMongooseModule from "passport-local-mongoose";
-
-// const passportLocalMongoose = passportLocalMongooseModule.default;
-
-// const Schema = mongoose.Schema;
-
-// const userSchema = new Schema({
-//   email: {
-//     type: String,
-//     required: true,
-//   },
-// });
-
-// userSchema.plugin(passportLocalMongoose);
-
-// const user = mongoose.model("User", userSchema);
-
-// export default user;
-
 import mongoose from "mongoose";
 import passportLocalMongooseModule from "passport-local-mongoose";
 import passport from "passport";
@@ -30,6 +10,19 @@ const userSchema = new Schema({
   email: {
     type: String,
     required: true,
+  },
+
+  emailVerified: {
+    type: Boolean,
+    default: false,
+  },
+
+  emailVerificationToken: {
+    type: String,
+  },
+
+  emailVerificationExpires: {
+    type: Date,
   },
 
   googleId: {
