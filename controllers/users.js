@@ -50,7 +50,7 @@ const signup = async (req, res, next) => {
     await User.register(newUser, password);
 
     // Create the verification link
-    const verifyURL = `https://wanderlust-project-vwgq.onrender.com/verify-email/${token}`;
+    const verifyURL = `${process.env.APP_URL}/verify-email/${token}`;
     // const verifyURL = `http://localhost:8080/verify-email/${token}`; // for locally before deploying
 
     // Send the verification email
